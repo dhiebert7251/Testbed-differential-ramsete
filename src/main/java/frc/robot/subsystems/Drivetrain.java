@@ -9,6 +9,9 @@ import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.kauailabs.navx.frc.AHRS;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
+import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
@@ -33,8 +36,11 @@ public class Drivetrain extends SubsystemBase {
   private final Encoder frontRightEncoder = new Encoder(DrivetrainConstants.kFrontRightEncoderA, DrivetrainConstants.kFrontRightEncoderB, false, EncodingType.k4X);
   //private final Encoder backRightEncoder = new Encoder(DrivetrainConstants.kBackRightEncoderA, DrivetrainConstants.kBackRightEncoderB, false, EncodingType.k4X);   
 
+ // Odometry class for tracking robot pose
+  private final DifferentialDriveOdometry odometry;
 
   private final AHRS gyro;
+
 
 
   public Drivetrain() {
@@ -77,6 +83,9 @@ public class Drivetrain extends SubsystemBase {
     frontLeftEncoder.setDistancePerPulse(PhysicalConstants.kDistancePerPulse);
     frontRightEncoder.setDistancePerPulse(PhysicalConstants.kDistancePerPulse);
 
+  odometry =
+    new DifferentialDriveOdometry(
+        gyro.getRotation2d(), frontLeftEncoder.getDistance(), frontRightEncoder.getDistance());
 
   }
 
@@ -85,6 +94,32 @@ public class Drivetrain extends SubsystemBase {
     // This method will be called once per scheduler run
   }
 
+  public Pose2d getPose() {
+    return odometry.getPoseMeters();
+  }
+
+
+  public DifferentialDriveWheelSpeeds getWheelSpeeds() {
+    return new DifferentialDriveWheelSpeeds(frontLeftEncoder.getRate(), frontRightEncoder.getRate());
+  }
+
+  public void resetOdometry(Pose2d pose) {
+    resetEncoders();
+    odometry.resetPosition(
+        gyro.getRotation2d(), frontLeftEncoder.getDistance(), frontRightEncoder.getDistance(), pose);
+  }
+
+    /**
+   * Controls the left and right sides of the drive directly with voltages.
+   *
+   * @param leftVolts the commanded left output
+   * @param rightVolts the commanded right output
+   */
+  public void tankDriveVolts(double leftVolts, double rightVolts) {
+    frontLeftDrive.setVoltage(leftVolts);
+    frontRightDrive.setVoltage(rightVolts);
+    differentialDrive.feed();
+  }
 
 
     /**
@@ -146,11 +181,11 @@ public class Drivetrain extends SubsystemBase {
    * @return the robot's heading in degrees, from 180 to 180
    */
   public double getHeading() {
-    return Math.IEEEremainder(gyro.getAngle(), 360) * (DrivetrainConstants.kGyroReversed ? -1.0 : 1.0);
+    return gyro.getRotation2d().getDegrees();
   }
 
  
   public double getTurnRate() {
-    return gyro.getRate() * (DrivetrainConstants.kGyroReversed ? -1.0 : 1.0); //rate in degrees per second
+    return -gyro.getRate();
   }
 }
