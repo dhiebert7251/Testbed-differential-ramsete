@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.util.Units;
 
 /**
@@ -69,10 +70,15 @@ public final class Constants {
     private static final double kWheelDiameter = Units.inchesToMeters(8); //pneumatic wheels
     //public static final double kWheelDiameter = Units.inchesToMeters(6); //meccanum or Hi-Tec traction wheels
     public static final double kMaxSpeed = (kMotorFreeSpeed*kDriveGearRatio/60)*(Math.PI*kWheelDiameter); // meters per second
+    public static final double kMaxAccel = 1.0;
     public static final double kMaxAngularSpeed = 2 * Math.PI; // one rotation per second
   
     public static final double kTrackWidth = Units.inchesToMeters(33.12); // from drawing
     public static final double kWheelBase = Units.inchesToMeters(19.945); // from drawing
+
+    public static final DifferentialDriveKinematics kDriveKinematics =
+      new DifferentialDriveKinematics(kTrackWidth);
+
     //private static final double kWheelRadius = kWheelDiameter/2; // meters
     private static final int kEncoderResolution = 80; //CIMcoder (20 per channel quadrature) - TODO:is this correct?
     public static final double kDistancePerPulse = (Math.PI*kWheelDiameter)/kEncoderResolution;
@@ -83,5 +89,20 @@ public final class Constants {
     public static final double kAutoDriveDistanceMeters = Units.inchesToMeters(60);
     private static final double kAutoDriveSpeedScale = 0.50;
     public static final double kAutoDriveSpeed = PhysicalConstants.kMaxSpeed * kAutoDriveSpeedScale; 
+
+    //TODO: determine values using SYSId
+    public static final double ksVolts = 0.22;
+    public static final double kvVoltSecondsPerMeter = 1.98;
+    public static final double kaVoltSecondsSquaredPerMeter = 0.2;
+
+    //TODO: inital values.  Should be reset
+    public static final double kRamseteB = 2.0;
+    public static final double kRamseteZeta = 0.7;
+
+    //TODO: adjust velocity PID values
+    public static final double kPDriveVel = 8.5; //value seems very high
+    public static final double kIDriveVel = 0.0;
+    public static final double kDDriveVel = 0.0;
+
   }
 }
